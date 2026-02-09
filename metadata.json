@@ -1,0 +1,5 @@
+{
+  "name": "Linguist Corpus Analyzer",
+  "description": "A high-performance corpus analysis tool for textual data. Upload TSV files, configure search columns, and extract sophisticated linguistic patterns using pre-defined regex expressions for multi-lingual analysis.",
+  "requestFramePermissions": []
+}
