@@ -1,0 +1,173 @@
+[
+  {
+    "id": "TERM_001",
+    "title_en": "Nakba",
+    "variants_en": ["Nakba", "Naqba", "ongoing Nakba"],
+    "variants_he": ["נכבה", "נכבה מתמשכת"],
+    "regex_en": "\\b(ongoing\\s+)?na[kq]ba\\b",
+    "regex_he": "([ובהכשלמ]|^)נכבה(\\s+מתמשכת)?",
+    "enabled": true
+  },
+  {
+    "id": "TERM_002",
+    "title_en": "Colonialism",
+    "variants_en": ["Colonialism", "settler-colonialism", "colonial"],
+    "variants_he": ["קולוניאליזם", "קולוניאלי", "קולוניאליזם התישבותי"],
+    "regex_en": "\\b(settler[- ])?colonial(ism|ist)?s?\\b",
+    "regex_he": "([ובהכשלמ]|^)קולוניאלי(זם|סט|י)?(\\s+התישבותי)?",
+    "enabled": true
+  },
+  {
+    "id": "TERM_003",
+    "title_en": "Apartheid",
+    "variants_en": ["Apartheid"],
+    "variants_he": ["אפרטהייד"],
+    "regex_en": "\\bapartheid\\b",
+    "regex_he": "([ובהכשלמ]|^)אפרטהייד",
+    "enabled": true
+  },
+  {
+    "id": "TERM_004",
+    "title_en": "Jewish supremacy",
+    "variants_en": ["Jewish supremacy"],
+    "variants_he": ["עליונות יהודית"],
+    "regex_en": "\\bJewish\\s+supremacy\\b",
+    "regex_he": "([ובהכשלמ]|^)עליונות\\s+יהודית",
+    "enabled": true
+  },
+  {
+    "id": "TERM_005",
+    "title_en": "Zionism",
+    "variants_en": ["Zionism", "Zionist", "Zionists"],
+    "variants_he": ["ציונות", "ציוני", "ציוניים"],
+    "regex_en": "\\bZionis(m|t)s?\\b",
+    "regex_he": "([ובהכשלמ]|^)ציונ(ות|י|ית|ים|יים)",
+    "enabled": true
+  },
+  {
+    "id": "TERM_006",
+    "title_en": "Anti-Zionism",
+    "variants_en": ["Anti-Zionism", "anti-Zionist"],
+    "variants_he": ["אנטי-ציונות", "אנטי-ציוני"],
+    "regex_en": "\\banti[- ]?Zionis(m|t)s?\\b",
+    "regex_he": "([ובהכשלמ]|^)אנטי[- ]?ציונ(ות|י|ית|ים|יים)",
+    "enabled": true
+  },
+  {
+    "id": "TERM_007",
+    "title_en": "BDS / Boycott",
+    "variants_en": ["BDS", "boycott"],
+    "variants_he": ["חרם", "BDS"],
+    "regex_en": "\\b(BDS|boycott(s|ing)?)\\b",
+    "regex_he": "([ובהכשלמ]|^)(חרם|BDS)",
+    "enabled": true
+  },
+  {
+    "id": "TERM_008",
+    "title_en": "Coresistance",
+    "variants_en": ["Coresistance", "co-resistance", "joint resistance"],
+    "variants_he": ["התנגדות משותפת"],
+    "regex_en": "\\b(co[- ]?resistance|joint\\s+resistance)\\b",
+    "regex_he": "([ובהכשלמ]|^)התנגדות\\s+משותפת",
+    "enabled": true
+  },
+  {
+    "id": "TERM_009",
+    "title_en": "Joint struggle",
+    "variants_en": ["Joint struggle"],
+    "variants_he": ["מאבק משותף"],
+    "regex_en": "\\bjoint\\s+struggle\\b",
+    "regex_he": "([ובהכשלמ]|^)מאבק\\s+משותף",
+    "enabled": true
+  },
+  {
+    "id": "TERM_010",
+    "title_en": "Occupation",
+    "variants_en": ["Occupation", "the occupation"],
+    "variants_he": ["כיבוש"],
+    "regex_en": "\\b(the\\s+)?occupation\\b",
+    "regex_he": "([ובהכשלמ]|^)כיבוש",
+    "enabled": true
+  },
+  {
+    "id": "TERM_011",
+    "title_en": "Peace",
+    "variants_en": ["Peace"],
+    "variants_he": ["שלום"],
+    "regex_en": "\\bpeace\\b",
+    "regex_he": "([ובהכשלמ]|^)שלום",
+    "enabled": true
+  },
+  {
+    "id": "TERM_012",
+    "title_en": "Coexistence",
+    "variants_en": ["Coexistence", "co-existence"],
+    "variants_he": ["דו קיום", "דו-קיום"],
+    "regex_en": "\\bco[- ]?existence\\b",
+    "regex_he": "([ובהכשלמ]|^)דו[- ]?קיום",
+    "enabled": true
+  },
+  {
+    "id": "TERM_013",
+    "title_en": "Genocide",
+    "variants_en": ["Genocide"],
+    "variants_he": ["רצח עם", "ג׳נוסייד"],
+    "regex_en": "\\bgenocide\\b",
+    "regex_he": "([ובהכשלמ]|^)(רצח\\s+עם|ג['׳]נוסייד)",
+    "enabled": true
+  },
+  {
+    "id": "TERM_014",
+    "title_en": "Massacre",
+    "variants_en": ["Massacre", "massacres"],
+    "variants_he": ["טבח"],
+    "regex_en": "\\bmassacre[sd]?\\b",
+    "regex_he": "([ובהכשלמ]|^)טבח",
+    "enabled": true
+  },
+  {
+    "id": "TERM_015",
+    "title_en": "War Crimes",
+    "variants_en": ["War crime", "war crimes", "war criminal", "war criminals"],
+    "variants_he": ["פשע מלחמה", "פשעי מלחמה", "פושע מלחמה", "פושעי מלחמה"],
+    "regex_en": "\\bwar\\s+crim(e|inal)s?\\b",
+    "regex_he": "([ובהכשלמ]|^)פשע(י)?\\s+מלחמה|([ובהכשלמ]|^)פושע(י)?\\s+מלחמה",
+    "enabled": true
+  },
+  {
+    "id": "TERM_016",
+    "title_en": "Crimes against humanity",
+    "variants_en": ["Crime against humanity", "crimes against humanity"],
+    "variants_he": ["פשע נגד האנושות", "פשעים נגד האנושות"],
+    "regex_en": "\\bcrimes?\\s+against\\s+humanity\\b",
+    "regex_he": "([ובהכשלמ]|^)פשע(ים)?\\s+נגד\\s+האנושות",
+    "enabled": true
+  },
+  {
+    "id": "TERM_017",
+    "title_en": "Fascism",
+    "variants_en": ["Fascism", "Fascist", "Fascists"],
+    "variants_he": ["פשיזם", "פשיסטים", "פשיסט"],
+    "regex_en": "\\bfascis(m|t)s?\\b",
+    "regex_he": "([ובהכשלמ]|^)פשיז(ם|ט|טים)",
+    "enabled": true
+  },
+  {
+    "id": "TERM_018",
+    "title_en": "Pogrom",
+    "variants_en": ["Pogrom", "pogroms"],
+    "variants_he": ["פוגרום"],
+    "regex_en": "\\bpogroms?\\b",
+    "regex_he": "([ובהכשלמ]|^)פוגרום",
+    "enabled": true
+  },
+  {
+    "id": "TERM_019",
+    "title_en": "Ethnic Cleansing",
+    "variants_en": ["Ethnic cleansing"],
+    "variants_he": ["טיהור אתני"],
+    "regex_en": "\\bethnic\\s+cleansing\\b",
+    "regex_he": "([ובהכשלמ]|^)טיהור\\s+אתני",
+    "enabled": true
+  }
+]
