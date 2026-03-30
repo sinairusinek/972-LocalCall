@@ -486,6 +486,7 @@ UNKNOWN_AUTHOR = "(unknown / no author)"
 def prepare_author_timeline_data(
     results: list[AnalysisRowResult],
     active_authors: list[str] | None = None,
+    active_terms: list[str] | None = None,
     metric: str = "POSTS",
     aggregation: TimeAggregation = TimeAggregation.MONTH,
     include_unknown: bool = True,
@@ -496,11 +497,18 @@ def prepare_author_timeline_data(
 
     Articles with no author are grouped under UNKNOWN_AUTHOR when
     include_unknown=True. The caller can colour this entry grey.
+
+    active_terms: if provided, only articles that contain at least one match
+    from the selected terms are counted.
     """
     rows = []
     for res in results:
         if res.date is None:
             continue
+        # Term filter: skip articles with no matching term
+        if active_terms is not None:
+            if not any(m.term_title in active_terms for m in res.matches):
+                continue
         key = _agg_key(res.date, aggregation)
         val = 1 if metric == "POSTS" else res.word_count
 

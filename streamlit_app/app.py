@@ -571,6 +571,7 @@ def step_dashboard():
             author_tl = prepare_author_timeline_data(
                 filtered_results,
                 active_authors=None,
+                active_terms=selected_terms if selected_terms is not None else None,
                 metric=author_metric,
                 aggregation=aggregation,
                 include_unknown=include_unknown,
