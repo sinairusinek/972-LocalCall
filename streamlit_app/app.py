@@ -494,16 +494,34 @@ def step_dashboard():
         )
 
     # ---- Pre-filter results by selected authors/outlets ----
-    # selected_authors is always set (may be all authors if no filter applied).
-    # Include articles with no author only when include_unknown is True.
-    if selected_authors:
-        filtered_results = [
-            r for r in results
-            if any(a in selected_authors for a in r.authors)
-            or (include_unknown and not r.authors)
-        ]
-    else:
-        filtered_results = [r for r in results if include_unknown and not r.authors]
+    # Map article Source column values → outlet display names used in the filter.
+    SOURCE_TO_OUTLET = {"972": "972 Magazine", "LocalCall": "Local Call"}
+
+    # Determine which outlet names are selected (None means no outlet filter exists)
+    selected_outlet_names: set[str] | None = (
+        set(selected_outlets) if (not authors_df.empty and "outlet" in authors_df.columns) else None
+    )
+
+    def _article_outlet(r: "AnalysisRowResult") -> str | None:
+        return SOURCE_TO_OUTLET.get(str(r.original_row.get("Source", "") or ""))
+
+    def _include_authorless(r: "AnalysisRowResult") -> bool:
+        """Authorless posts: respect include_unknown, status-7, and outlet filter."""
+        if not include_unknown:
+            return False
+        if 7 not in selected_statuses:
+            return False
+        if selected_outlet_names is not None:
+            article_outlet = _article_outlet(r)
+            if article_outlet not in selected_outlet_names:
+                return False
+        return True
+
+    filtered_results = [
+        r for r in results
+        if (r.authors and any(a in selected_authors for a in r.authors))
+        or (not r.authors and _include_authorless(r))
+    ]
 
     # ---- Tabs ----
     tab_linguistic, tab_author, tab_table = st.tabs(
