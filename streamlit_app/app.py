@@ -493,6 +493,18 @@ def step_dashboard():
             disabled=(count_mode == CountMode.ROWS),
         )
 
+    # ---- Pre-filter results by selected authors/outlets ----
+    # selected_authors is always set (may be all authors if no filter applied).
+    # Include articles with no author only when include_unknown is True.
+    if selected_authors:
+        filtered_results = [
+            r for r in results
+            if any(a in selected_authors for a in r.authors)
+            or (include_unknown and not r.authors)
+        ]
+    else:
+        filtered_results = [r for r in results if include_unknown and not r.authors]
+
     # ---- Tabs ----
     tab_linguistic, tab_author, tab_table = st.tabs(
         ["Linguistic timeline", "Author timeline", "Results table"]
@@ -501,7 +513,7 @@ def step_dashboard():
     # ---- Linguistic timeline ----
     with tab_linguistic:
         timeline_df = prepare_timeline_data(
-            results,
+            filtered_results,
             count_mode=count_mode,
             active_terms=selected_terms if selected_terms else None,
             aggregation=aggregation,
@@ -539,8 +551,8 @@ def step_dashboard():
         else:
             author_metric = st.radio("Metric", ["POSTS", "WORDS"], horizontal=True)
             author_tl = prepare_author_timeline_data(
-                results,
-                active_authors=selected_authors if selected_authors else None,
+                filtered_results,
+                active_authors=None,
                 metric=author_metric,
                 aggregation=aggregation,
                 include_unknown=include_unknown,
@@ -602,13 +614,11 @@ def step_dashboard():
             # Author summary table
             st.subheader("Author summary")
             author_totals: dict = {}
-            for res in results:
+            for res in filtered_results:
                 authors_here = res.authors if res.authors else (
                     [UNKNOWN_AUTHOR] if include_unknown else []
                 )
                 for author in authors_here:
-                    if selected_authors and author not in selected_authors and author != UNKNOWN_AUTHOR:
-                        continue
                     if author not in author_totals:
                         author_totals[author] = {"posts": 0, "words": 0, "matches": 0}
                     author_totals[author]["posts"] += 1
@@ -650,14 +660,13 @@ def step_dashboard():
         st.markdown("Filtered by current sidebar selections.")
         filter_text = st.text_input("Search rows:", "", key="dash_filter")
 
-        # Filter results to selected authors/terms
-        filtered = [
-            r for r in results
-            if (not selected_authors or any(a in selected_authors for a in r.authors))
-            and (not selected_terms or any(m.term_title in selected_terms for m in r.matches))
+        # Apply term filter on top of already author/outlet-filtered results
+        tbl_filtered = [
+            r for r in filtered_results
+            if not selected_terms or any(m.term_title in selected_terms for m in r.matches)
         ]
 
-        tbl_df = results_to_dataframe(filtered, public=True)
+        tbl_df = results_to_dataframe(tbl_filtered, public=True)
         _TAIL_COLS = ["institutional author", "translators", "tags", "page_type", "filename"]
         _base = [c for c in tbl_df.columns
                  if not c.startswith("_term_") and c not in _TAIL_COLS]
