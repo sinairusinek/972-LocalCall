@@ -455,7 +455,7 @@ def prepare_timeline_data(
         if normalize:
             word_rows.append({"period": key, "words": res.word_count or 0})
         for m in res.matches:
-            if active_terms and m.term_title not in active_terms:
+            if active_terms is not None and m.term_title not in active_terms:
                 continue
             increment = m.count if count_mode == CountMode.HITS else 1
             hit_rows.append({"period": key, "term": m.term_title, "value": increment})

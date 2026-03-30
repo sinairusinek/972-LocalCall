@@ -533,7 +533,7 @@ def step_dashboard():
         timeline_df = prepare_timeline_data(
             filtered_results,
             count_mode=count_mode,
-            active_terms=selected_terms if selected_terms else None,
+            active_terms=selected_terms if selected_terms is not None else None,
             aggregation=aggregation,
             normalize=normalize,
         )
