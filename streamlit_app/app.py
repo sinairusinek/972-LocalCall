@@ -98,12 +98,8 @@ with st.sidebar:
     st.markdown("---")
 
     for s in STEPS:
-        # In preloaded mode, upload/configure steps are secondary
+        # In preloaded mode, upload/configure steps are hidden entirely
         if st.session_state.preloaded and s in ("upload", "configure"):
-            label = f"○ {STEP_LABELS[s]}"
-            if st.button(label, key=f"nav_{s}", use_container_width=True):
-                st.session_state.step = s
-                st.rerun()
             continue
 
         active = st.session_state.step == s
@@ -439,23 +435,25 @@ def step_dashboard():
             format_func=lambda s: f"{s} — {AUTHOR_STATUS_LABELS[s]}",
         )
 
-        selected_authors = [
-            a for a in all_authors
-            if author_status_map.get(a, 7) in selected_statuses
-        ]
-
+        # Outlet filter — builds a set of valid author keys; None means no outlet column
+        outlet_valid_authors: set[str] | None = None
         if not authors_df.empty and "outlet" in authors_df.columns:
             all_outlets = sorted(authors_df["outlet"].dropna().unique().tolist())
             selected_outlets = st.multiselect("Outlet", all_outlets, default=all_outlets)
-            outlet_names: set[str] = set()
+            outlet_valid_authors = set()
             for col in ("author_id", "display_name_en", "display_name_he"):
                 if col in authors_df.columns:
-                    outlet_names |= set(
+                    outlet_valid_authors |= set(
                         authors_df.loc[authors_df["outlet"].isin(selected_outlets), col]
                         .dropna().tolist()
                     )
-            if outlet_names:
-                selected_authors = [a for a in selected_authors if a in outlet_names]
+
+        # Upstream-filtered authors = status ∩ outlet (before the author picker)
+        upstream_filtered = [
+            a for a in all_authors
+            if author_status_map.get(a, 7) in selected_statuses
+            and (outlet_valid_authors is None or a in outlet_valid_authors)
+        ]
 
         include_unknown = st.checkbox(
             "Show articles with no author",
@@ -463,9 +461,20 @@ def step_dashboard():
             help="Articles where the author field is empty are grouped as '(unknown / no author)' in grey.",
         )
 
+        # Reset the author picker whenever the upstream filters change so that
+        # status and outlet filters always take effect (Streamlit would otherwise
+        # keep the cached multiselect value across reruns).
+        _upstream_key = (
+            tuple(sorted(selected_statuses)),
+            tuple(sorted(outlet_valid_authors or [])),
+        )
+        if st.session_state.get("_filter_upstream_key") != _upstream_key:
+            st.session_state["author_picker"] = upstream_filtered
+            st.session_state["_filter_upstream_key"] = _upstream_key
+
         with st.expander("Pick specific authors"):
             selected_authors = st.multiselect(
-                "Authors", all_authors, default=selected_authors, key="author_picker"
+                "Authors", all_authors, default=upstream_filtered, key="author_picker"
             )
 
         count_mode = st.radio(
@@ -680,6 +689,11 @@ def step_dashboard():
 # ---------------------------------------------------------------------------
 
 step = st.session_state.step
+
+# In preloaded mode, upload/configure are not accessible
+if st.session_state.preloaded and step in ("upload", "configure"):
+    st.session_state.step = "dashboard"
+    step = "dashboard"
 
 if step == "upload":
     step_upload()
