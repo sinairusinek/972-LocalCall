@@ -607,7 +607,7 @@ def step_dashboard():
                 color_idx = 0
                 for author in plot_cols:
                     if author == UNKNOWN_AUTHOR:
-                        color = "lightgrey"
+                        color = "#555555"
                     elif author == "(others)":
                         color = "#cccccc"
                     else:
