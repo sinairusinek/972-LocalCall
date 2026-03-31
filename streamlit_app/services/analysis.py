@@ -441,6 +441,7 @@ def prepare_timeline_data(
     aggregation: TimeAggregation = TimeAggregation.MONTH,
     normalize: bool = False,
     group_by_outlet: bool = False,
+    article_group_fn=None,
 ) -> pd.DataFrame:
     """
     Returns a DataFrame with columns:
@@ -450,6 +451,9 @@ def prepare_timeline_data(
     raw counts. Requires count_mode=HITS (ignored for ROWS mode).
 
     group_by_outlet=True: columns are outlet names instead of term names.
+
+    article_group_fn: optional callable(AnalysisRowResult) -> str that overrides
+    the grouping key (used e.g. for author-status coloring).
     """
     hit_rows = []
     word_rows = []
@@ -464,10 +468,12 @@ def prepare_timeline_data(
             if active_terms is not None and m.term_title not in active_terms:
                 continue
             increment = m.count if count_mode == CountMode.HITS else 1
-            group_key = (
-                SOURCE_TO_OUTLET.get(str(res.original_row.get("Source", "") or ""), "unknown")
-                if group_by_outlet else m.term_title
-            )
+            if article_group_fn is not None:
+                group_key = article_group_fn(res)
+            elif group_by_outlet:
+                group_key = SOURCE_TO_OUTLET.get(str(res.original_row.get("Source", "") or ""), "unknown")
+            else:
+                group_key = m.term_title
             hit_rows.append({"period": key, "term": group_key, "value": increment})
 
     if not hit_rows:
@@ -501,19 +507,20 @@ def prepare_author_timeline_data(
     aggregation: TimeAggregation = TimeAggregation.MONTH,
     include_unknown: bool = True,
     author_outlet_map: dict | None = None,
+    author_grouping_map: dict | None = None,
+    authorless_group_fn=None,
 ) -> pd.DataFrame:
     """
     Returns a DataFrame with columns:
       period | <author1> | <author2> | ... | total
 
-    Articles with no author are grouped under UNKNOWN_AUTHOR when
-    include_unknown=True. The caller can colour this entry grey.
-
-    active_terms: if provided, only articles that contain at least one match
-    from the selected terms are counted.
-
-    author_outlet_map: if provided, group by outlet name instead of author ID.
+    author_grouping_map: if provided, maps author_id → group label (e.g. outlet or status).
+    authorless_group_fn: optional callable(AnalysisRowResult) -> str for articles with no author.
+    Falls back to author_outlet_map for backwards compatibility.
     """
+    # Resolve grouping map (author_grouping_map takes precedence over legacy author_outlet_map)
+    _grouping = author_grouping_map if author_grouping_map is not None else author_outlet_map
+
     rows = []
     for res in results:
         if res.date is None:
@@ -528,16 +535,18 @@ def prepare_author_timeline_data(
         if not res.authors:
             if include_unknown:
                 if active_authors is None or UNKNOWN_AUTHOR in active_authors:
-                    label = (
-                        SOURCE_TO_OUTLET.get(str(res.original_row.get("Source", "") or ""), "unknown")
-                        if author_outlet_map is not None else UNKNOWN_AUTHOR
-                    )
+                    if authorless_group_fn is not None:
+                        label = authorless_group_fn(res)
+                    elif _grouping is not None:
+                        label = SOURCE_TO_OUTLET.get(str(res.original_row.get("Source", "") or ""), "unknown")
+                    else:
+                        label = UNKNOWN_AUTHOR
                     rows.append({"period": key, "author": label, "value": val})
         else:
             for author in res.authors:
                 if active_authors and author not in active_authors:
                     continue
-                label = author_outlet_map.get(author, "unknown") if author_outlet_map is not None else author
+                label = _grouping.get(author, "unknown") if _grouping is not None else author
                 rows.append({"period": key, "author": label, "value": val})
 
     if not rows:

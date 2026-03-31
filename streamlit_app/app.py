@@ -389,6 +389,18 @@ OUTLET_COLORS = {
     "unknown":      "#888888",
 }
 
+# Colors keyed by AUTHOR_STATUS_LABELS label strings
+STATUS_COLORS = {
+    "Israeli Jew":                "#2196F3",   # blue
+    "Diaspora Jew":               "#64B5F6",   # light blue
+    "Palestinian citizen of Israel": "#4CAF50", # green
+    "West Bank Palestinian":      "#FF9800",   # orange
+    "Gaza Palestinian":           "#F44336",   # red
+    "Diaspora Palestinian":       "#FF7043",   # deep orange
+    "Other / not identified":     "#888888",   # grey
+    "unknown":                    "#888888",
+}
+
 
 def step_dashboard():
     st.header("Dashboard")
@@ -484,13 +496,15 @@ def step_dashboard():
                 "Authors", all_authors, default=upstream_filtered, key="author_picker"
             )
 
-        color_by_outlet = st.radio(
+        color_mode = st.radio(
             "Color by",
-            ["Term / Author", "Outlet"],
+            ["Term / Author", "Outlet", "Author status"],
             index=0,
             horizontal=True,
-            key="color_by_outlet",
-        ) == "Outlet"
+            key="color_mode",
+        )
+        color_by_outlet = color_mode == "Outlet"
+        color_by_status = color_mode == "Author status"
 
     # ---- Pre-filter results by selected authors/outlets ----
     # Determine which outlet names are selected (None means no outlet filter exists)
@@ -519,13 +533,25 @@ def step_dashboard():
         or (not r.authors and _include_authorless(r))
     ]
 
-    # ---- Build author→outlet map for outlet coloring mode ----
+    # ---- Build grouping maps for coloring modes ----
     author_outlet_map = None
     if color_by_outlet and not authors_df.empty and "outlet" in authors_df.columns:
         author_outlet_map = dict(zip(
             authors_df["author_id"].dropna(),
             authors_df["outlet"].dropna(),
         ))
+
+    # author_id → status label string (for status coloring)
+    author_status_label_map: dict[str, str] = {
+        a: AUTHOR_STATUS_LABELS.get(author_status_map.get(a, 7), "Other / not identified")
+        for a in all_authors
+    }
+
+    def _article_status_label(r) -> str:
+        """Best-effort status label for an article, using its first author."""
+        if r.authors:
+            return author_status_label_map.get(r.authors[0], "Other / not identified")
+        return "Other / not identified"
 
     # ---- Tabs ----
     tab_linguistic, tab_author, tab_table = st.tabs(
@@ -561,6 +587,7 @@ def step_dashboard():
             aggregation=aggregation,
             normalize=normalize,
             group_by_outlet=color_by_outlet,
+            article_group_fn=_article_status_label if color_by_status else None,
         )
 
         if timeline_df.empty or timeline_df.get("total", pd.Series([0])).sum() == 0:
@@ -572,21 +599,23 @@ def step_dashboard():
             term_cols = [c for c in timeline_df.columns if c not in ("period", "total")]
             fig = go.Figure()
             for i, term in enumerate(term_cols):
-                color = (
-                    OUTLET_COLORS.get(term, OUTLET_COLORS["unknown"])
-                    if color_by_outlet
-                    else PLOTLY_COLORS[i % len(PLOTLY_COLORS)]
-                )
+                if color_by_outlet:
+                    color = OUTLET_COLORS.get(term, OUTLET_COLORS["unknown"])
+                elif color_by_status:
+                    color = STATUS_COLORS.get(term, STATUS_COLORS["unknown"])
+                else:
+                    color = PLOTLY_COLORS[i % len(PLOTLY_COLORS)]
                 fig.add_trace(go.Bar(
                     x=timeline_df["period"], y=timeline_df[term],
                     name=term, marker_color=color,
                 ))
+            legend_title = "Outlet" if color_by_outlet else ("Author status" if color_by_status else "Term")
             fig.update_layout(
                 barmode="stack", height=450,
                 title="Term occurrences over time"
                       + (" (per 1,000 words)" if normalize else ""),
                 xaxis_title="Period", yaxis_title=y_label,
-                legend_title="Outlet" if color_by_outlet else "Term",
+                legend_title=legend_title,
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -607,6 +636,8 @@ def step_dashboard():
                 aggregation=aggregation,
                 include_unknown=include_unknown,
                 author_outlet_map=author_outlet_map,
+                author_grouping_map=author_status_label_map if color_by_status else None,
+                authorless_group_fn=_article_status_label if color_by_status else None,
             )
 
             if author_tl.empty or author_tl.get("total", pd.Series([0])).sum() == 0:
@@ -641,6 +672,8 @@ def step_dashboard():
                 for author in plot_cols:
                     if color_by_outlet:
                         color = OUTLET_COLORS.get(author, OUTLET_COLORS["unknown"])
+                    elif color_by_status:
+                        color = STATUS_COLORS.get(author, STATUS_COLORS["unknown"])
                     elif author == UNKNOWN_AUTHOR:
                         color = "#555555"
                     elif author == "(others)":
@@ -652,12 +685,13 @@ def step_dashboard():
                         x=plot_df["period"], y=plot_df[author],
                         name=author, marker_color=color,
                     ))
+                legend_title2 = "Outlet" if color_by_outlet else ("Author status" if color_by_status else "Author")
                 fig2.update_layout(
                     barmode="stack", height=450,
                     title=f"Author {author_metric.lower()} over time"
                           + (f" (top {MAX_AUTHORS} + others)" if rest_cols else ""),
                     xaxis_title="Period", yaxis_title=author_metric.capitalize(),
-                    legend_title="Outlet" if color_by_outlet else "Author",
+                    legend_title=legend_title2,
                 )
                 st.plotly_chart(fig2, use_container_width=True)
                 if rest_cols:
