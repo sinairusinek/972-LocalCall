@@ -74,9 +74,29 @@ _init_state()
 def _load_precomputed_cached():
     return load_precomputed()
 
+
+CROSS_PUBLISHED_LABEL = "972 + Local Call"
+CROSS_PUBLISHED_TSV = DATA_DIR / "972also-inLocalCall.tsv"
+
+
+@st.cache_data(show_spinner=False)
+def _load_cross_published_urls() -> frozenset:
+    if not CROSS_PUBLISHED_TSV.exists():
+        return frozenset()
+    df = pd.read_csv(CROSS_PUBLISHED_TSV, sep="\t", dtype=str, keep_default_na=False)
+    if "url" not in df.columns:
+        return frozenset()
+    return frozenset(df["url"].str.strip())
+
+
+_cross_urls: frozenset = _load_cross_published_urls()
+
 if precomputed_exists() and st.session_state.results is None:
     st.session_state.results = _load_precomputed_cached()
     st.session_state.preloaded = True
+    for r in st.session_state.results:
+        url = str(r.original_row.get("url", "") or "").strip()
+        r.original_row["_cross_published"] = url in _cross_urls
 
 # ---------------------------------------------------------------------------
 # Sidebar — navigation
@@ -345,7 +365,7 @@ def step_results():
     # Show a sensible subset of columns in a defined order
     _TAIL_COLS = ["institutional author", "translators", "tags", "page_type", "filename"]
     _base = [c for c in result_df.columns
-             if not c.startswith("_term_") and c not in ("_word_count",) and c not in _TAIL_COLS]
+             if not c.startswith("_term_") and c not in ("_word_count", "_cross_published") and c not in _TAIL_COLS]
     display_cols = _base + [c for c in _TAIL_COLS if c in result_df.columns]
     st.dataframe(
         result_df[display_cols],
@@ -384,9 +404,10 @@ def step_results():
 PLOTLY_COLORS = px.colors.qualitative.Plotly
 
 OUTLET_COLORS = {
-    "972 Magazine": "#E63946",
-    "Local Call":   "#457B9D",
-    "unknown":      "#888888",
+    "972 Magazine":     "#E63946",
+    "Local Call":       "#457B9D",
+    "972 + Local Call": "#6A4C93",
+    "unknown":          "#888888",
 }
 
 # Colors keyed by AUTHOR_STATUS_LABELS label strings
@@ -467,6 +488,15 @@ def step_dashboard():
                         .dropna().tolist()
                     )
 
+        cross_published_only = st.checkbox(
+            "Cross-published only",
+            value=False,
+            help=(
+                "Show only 972 Magazine articles that were also published on Local Call (in Hebrew). "
+                "Note: the Local Call counterparts are not separately listed in this dataset."
+            ),
+        )
+
         # Upstream-filtered authors = status ∩ outlet (before the author picker)
         upstream_filtered = [
             a for a in all_authors
@@ -512,8 +542,10 @@ def step_dashboard():
         set(selected_outlets) if (not authors_df.empty and "outlet" in authors_df.columns) else None
     )
 
-    def _article_outlet(r: "AnalysisRowResult") -> str | None:
-        return SOURCE_TO_OUTLET.get(str(r.original_row.get("Source", "") or ""))
+    def _article_outlet(r) -> str:
+        if r.original_row.get("_cross_published"):
+            return CROSS_PUBLISHED_LABEL
+        return SOURCE_TO_OUTLET.get(str(r.original_row.get("Source", "") or ""), "unknown")
 
     def _include_authorless(r: "AnalysisRowResult") -> bool:
         """Authorless posts: respect include_unknown, status-7, and outlet filter."""
@@ -523,23 +555,34 @@ def step_dashboard():
             return False
         if selected_outlet_names is not None:
             article_outlet = _article_outlet(r)
-            if article_outlet not in selected_outlet_names:
+            # Cross-published articles are 972 Magazine articles; treat them as
+            # passing the outlet filter if "972 Magazine" is selected.
+            effective_outlet = (
+                "972 Magazine" if article_outlet == CROSS_PUBLISHED_LABEL else article_outlet
+            )
+            if effective_outlet not in selected_outlet_names:
                 return False
         return True
 
     filtered_results = [
         r for r in results
-        if (r.authors and any(a in selected_authors for a in r.authors))
-        or (not r.authors and _include_authorless(r))
+        if (
+            (r.authors and any(a in selected_authors for a in r.authors))
+            or (not r.authors and _include_authorless(r))
+        )
+        and (not cross_published_only or r.original_row.get("_cross_published", False))
     ]
 
     # ---- Build grouping maps for coloring modes ----
     author_outlet_map = None
-    if color_by_outlet and not authors_df.empty and "outlet" in authors_df.columns:
-        author_outlet_map = dict(zip(
-            authors_df["author_id"].dropna(),
-            authors_df["outlet"].dropna(),
-        ))
+    if color_by_outlet:
+        author_outlet_map = {}
+        for r in filtered_results:
+            outlet = _article_outlet(r)
+            for a in r.authors:
+                # Cross-published takes priority over plain 972 Magazine
+                if author_outlet_map.get(a) != CROSS_PUBLISHED_LABEL:
+                    author_outlet_map[a] = outlet
 
     # author_id → status label string (for status coloring)
     author_status_label_map: dict[str, str] = {
@@ -587,7 +630,10 @@ def step_dashboard():
             aggregation=aggregation,
             normalize=normalize,
             group_by_outlet=color_by_outlet,
-            article_group_fn=_article_status_label if color_by_status else None,
+            article_group_fn=(
+                _article_outlet if color_by_outlet
+                else (_article_status_label if color_by_status else None)
+            ),
         )
 
         if timeline_df.empty or timeline_df.get("total", pd.Series([0])).sum() == 0:
@@ -644,7 +690,10 @@ def step_dashboard():
                 include_unknown=include_unknown,
                 author_outlet_map=author_outlet_map,
                 author_grouping_map=author_status_label_map if color_by_status else None,
-                authorless_group_fn=_article_status_label if color_by_status else None,
+                authorless_group_fn=(
+                    _article_outlet if color_by_outlet
+                    else (_article_status_label if color_by_status else None)
+                ),
             )
 
             if author_tl.empty or author_tl.get("total", pd.Series([0])).sum() == 0:
@@ -770,7 +819,7 @@ def step_dashboard():
         tbl_df = results_to_dataframe(tbl_filtered, public=True)
         _TAIL_COLS = ["institutional author", "translators", "tags", "page_type", "filename"]
         _base = [c for c in tbl_df.columns
-                 if not c.startswith("_term_") and c not in _TAIL_COLS]
+                 if not c.startswith("_term_") and c not in ("_cross_published",) and c not in _TAIL_COLS]
         display_cols = _base + [c for c in _TAIL_COLS if c in tbl_df.columns]
 
         if filter_text:
