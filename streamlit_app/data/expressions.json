@@ -60,7 +60,10 @@
     "variants_he": ["חרם", "BDS"],
     "regex_en": "\\b(BDS|boycott(s|ing)?)\\b",
     "regex_he": "([ובהכשלמ]|^)(חרם|BDS)",
-    "enabled": true
+    "enabled": true,
+    "semantic_references_he": ["חרם על ישראל", "חרם כלכלי", "תנועת החרם", "חרם תרבותי"],
+    "semantic_references_en": ["boycott of Israel", "BDS movement", "economic boycott", "cultural boycott"],
+    "semantic_threshold": 0.38
   },
   {
     "id": "TERM_008",
@@ -96,7 +99,10 @@
     "variants_he": ["שלום"],
     "regex_en": "\\bpeace\\b",
     "regex_he": "([ובהכשלמ]|^)שלום",
-    "enabled": true
+    "enabled": true,
+    "semantic_references_he": ["הסכם שלום", "שלום בין עמים", "תהליך שלום", "שלום ישראלי פלסטיני"],
+    "semantic_references_en": ["peace agreement", "peace process", "peaceful resolution", "Israeli Palestinian peace"],
+    "semantic_threshold": 0.35
   },
   {
     "id": "TERM_012",
@@ -123,7 +129,10 @@
     "variants_he": ["טבח"],
     "regex_en": "\\bmassacre[sd]?\\b",
     "regex_he": "([ובהכשלמ]|^)טבח",
-    "enabled": true
+    "enabled": true,
+    "semantic_references_he": ["טבח של אזרחים", "מעשה טבח", "רצח המוני", "טבח עם"],
+    "semantic_references_en": ["massacre of civilians", "mass killing", "slaughter atrocity", "killing of people"],
+    "semantic_threshold": 0.40
   },
   {
     "id": "TERM_015",

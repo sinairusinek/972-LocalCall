@@ -99,6 +99,9 @@ class SearchExpression:
     regex_en: str
     regex_he: str
     enabled: bool = True
+    semantic_references_he: list = field(default_factory=list)
+    semantic_references_en: list = field(default_factory=list)
+    semantic_threshold: float = 0.38
 
     @classmethod
     def from_dict(cls, d: dict) -> "SearchExpression":
@@ -110,6 +113,9 @@ class SearchExpression:
             regex_en=d.get("regex_en", ""),
             regex_he=d.get("regex_he", ""),
             enabled=d.get("enabled", True),
+            semantic_references_he=d.get("semantic_references_he", []),
+            semantic_references_en=d.get("semantic_references_en", []),
+            semantic_threshold=float(d.get("semantic_threshold", 0.38)),
         )
 
 
@@ -119,6 +125,7 @@ class TermMatch:
     term_title: str
     count: int
     variants_found: list[str]
+    spans: list = field(default_factory=list)  # list[tuple[int,int]], populated when return_spans=True
 
 
 @dataclass
@@ -329,11 +336,15 @@ def analyze_corpus(
     expressions: list[SearchExpression],
     options: AnalysisOptions,
     name_mapping: Optional[dict] = None,
+    return_spans: bool = False,
 ) -> list[AnalysisRowResult]:
     """Run regex matching over the corpus, returning one result per row.
 
     name_mapping: optional dict from load_name_mapping(), used to resolve
     author names in the corpus to canonical_author_ids.
+
+    return_spans: if True, populate TermMatch.spans with (start, end) positions
+    in the concatenated text. Used by the semantic validation precompute path.
     """
     if name_mapping is None:
         name_mapping = load_name_mapping()
@@ -361,29 +372,38 @@ def analyze_corpus(
         for term_id, term_title, reg_en, reg_he in compiled:
             term_count = 0
             variants_found: set[str] = set()
+            spans: list[tuple[int, int]] = []
 
-            def _search_text(text: str):
+            def _search_text(text: str, offset: int = 0):
                 nonlocal term_count
                 for reg in (reg_en, reg_he):
                     if reg is None:
                         continue
-                    found = reg.findall(text)
-                    if found:
-                        # findall may return tuples when there are groups
-                        flat = []
-                        for f in found:
-                            if isinstance(f, tuple):
-                                flat.append("".join(f))
-                            else:
-                                flat.append(f)
-                        term_count += len(flat)
-                        variants_found.update(v.strip() for v in flat if v.strip())
+                    if return_spans:
+                        for m in reg.finditer(text):
+                            term_count += 1
+                            variants_found.add(m.group().strip())
+                            spans.append((m.start() + offset, m.end() + offset))
+                    else:
+                        found = reg.findall(text)
+                        if found:
+                            # findall may return tuples when there are groups
+                            flat = []
+                            for f in found:
+                                if isinstance(f, tuple):
+                                    flat.append("".join(f))
+                                else:
+                                    flat.append(f)
+                            term_count += len(flat)
+                            variants_found.update(v.strip() for v in flat if v.strip())
 
             if options.mode == SearchMode.CONCATENATED:
                 _search_text(" ".join(col_texts))
             else:
+                offset = 0
                 for t in col_texts:
-                    _search_text(t)
+                    _search_text(t, offset)
+                    offset += len(t) + 1
 
             if term_count > 0:
                 matches.append(TermMatch(
@@ -391,6 +411,7 @@ def analyze_corpus(
                     term_title=term_title,
                     count=term_count,
                     variants_found=list(variants_found),
+                    spans=spans if return_spans else [],
                 ))
                 total_matches += term_count
 
