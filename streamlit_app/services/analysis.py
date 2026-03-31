@@ -83,6 +83,9 @@ class TimeAggregation(str, Enum):
     YEAR = "YEAR"
 
 
+SOURCE_TO_OUTLET = {"972": "972 Magazine", "LocalCall": "Local Call"}
+
+
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
@@ -437,6 +440,7 @@ def prepare_timeline_data(
     active_terms: list[str] | None = None,
     aggregation: TimeAggregation = TimeAggregation.MONTH,
     normalize: bool = False,
+    group_by_outlet: bool = False,
 ) -> pd.DataFrame:
     """
     Returns a DataFrame with columns:
@@ -444,6 +448,8 @@ def prepare_timeline_data(
 
     normalize=True: values are hits per 1,000 words in that period instead of
     raw counts. Requires count_mode=HITS (ignored for ROWS mode).
+
+    group_by_outlet=True: columns are outlet names instead of term names.
     """
     hit_rows = []
     word_rows = []
@@ -458,7 +464,11 @@ def prepare_timeline_data(
             if active_terms is not None and m.term_title not in active_terms:
                 continue
             increment = m.count if count_mode == CountMode.HITS else 1
-            hit_rows.append({"period": key, "term": m.term_title, "value": increment})
+            group_key = (
+                SOURCE_TO_OUTLET.get(str(res.original_row.get("Source", "") or ""), "unknown")
+                if group_by_outlet else m.term_title
+            )
+            hit_rows.append({"period": key, "term": group_key, "value": increment})
 
     if not hit_rows:
         return pd.DataFrame(columns=["period", "total"])
@@ -490,6 +500,7 @@ def prepare_author_timeline_data(
     metric: str = "POSTS",
     aggregation: TimeAggregation = TimeAggregation.MONTH,
     include_unknown: bool = True,
+    author_outlet_map: dict | None = None,
 ) -> pd.DataFrame:
     """
     Returns a DataFrame with columns:
@@ -500,6 +511,8 @@ def prepare_author_timeline_data(
 
     active_terms: if provided, only articles that contain at least one match
     from the selected terms are counted.
+
+    author_outlet_map: if provided, group by outlet name instead of author ID.
     """
     rows = []
     for res in results:
@@ -515,12 +528,17 @@ def prepare_author_timeline_data(
         if not res.authors:
             if include_unknown:
                 if active_authors is None or UNKNOWN_AUTHOR in active_authors:
-                    rows.append({"period": key, "author": UNKNOWN_AUTHOR, "value": val})
+                    label = (
+                        SOURCE_TO_OUTLET.get(str(res.original_row.get("Source", "") or ""), "unknown")
+                        if author_outlet_map is not None else UNKNOWN_AUTHOR
+                    )
+                    rows.append({"period": key, "author": label, "value": val})
         else:
             for author in res.authors:
                 if active_authors and author not in active_authors:
                     continue
-                rows.append({"period": key, "author": author, "value": val})
+                label = author_outlet_map.get(author, "unknown") if author_outlet_map is not None else author
+                rows.append({"period": key, "author": label, "value": val})
 
     if not rows:
         return pd.DataFrame(columns=["period", "total"])

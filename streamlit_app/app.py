@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from services.analysis import (
     AUTHOR_STATUS_LABELS,
+    SOURCE_TO_OUTLET,
     TEXT_COLUMNS,
     UNKNOWN_AUTHOR,
     AnalysisOptions,
@@ -382,6 +383,12 @@ def step_results():
 
 PLOTLY_COLORS = px.colors.qualitative.Plotly
 
+OUTLET_COLORS = {
+    "972 Magazine": "#E63946",
+    "Local Call":   "#457B9D",
+    "unknown":      "#888888",
+}
+
 
 def step_dashboard():
     st.header("Dashboard")
@@ -493,10 +500,15 @@ def step_dashboard():
             disabled=(count_mode == CountMode.ROWS),
         )
 
-    # ---- Pre-filter results by selected authors/outlets ----
-    # Map article Source column values → outlet display names used in the filter.
-    SOURCE_TO_OUTLET = {"972": "972 Magazine", "LocalCall": "Local Call"}
+        color_by_outlet = st.radio(
+            "Color by",
+            ["Term / Author", "Outlet"],
+            index=0,
+            horizontal=True,
+            key="color_by_outlet",
+        ) == "Outlet"
 
+    # ---- Pre-filter results by selected authors/outlets ----
     # Determine which outlet names are selected (None means no outlet filter exists)
     selected_outlet_names: set[str] | None = (
         set(selected_outlets) if (not authors_df.empty and "outlet" in authors_df.columns) else None
@@ -523,6 +535,14 @@ def step_dashboard():
         or (not r.authors and _include_authorless(r))
     ]
 
+    # ---- Build author→outlet map for outlet coloring mode ----
+    author_outlet_map = None
+    if color_by_outlet and not authors_df.empty and "outlet" in authors_df.columns:
+        author_outlet_map = dict(zip(
+            authors_df["author_id"].dropna(),
+            authors_df["outlet"].dropna(),
+        ))
+
     # ---- Tabs ----
     tab_linguistic, tab_author, tab_table = st.tabs(
         ["Linguistic timeline", "Author timeline", "Results table"]
@@ -536,6 +556,7 @@ def step_dashboard():
             active_terms=selected_terms if selected_terms is not None else None,
             aggregation=aggregation,
             normalize=normalize,
+            group_by_outlet=color_by_outlet,
         )
 
         if timeline_df.empty or timeline_df.get("total", pd.Series([0])).sum() == 0:
@@ -547,15 +568,21 @@ def step_dashboard():
             term_cols = [c for c in timeline_df.columns if c not in ("period", "total")]
             fig = go.Figure()
             for i, term in enumerate(term_cols):
+                color = (
+                    OUTLET_COLORS.get(term, OUTLET_COLORS["unknown"])
+                    if color_by_outlet
+                    else PLOTLY_COLORS[i % len(PLOTLY_COLORS)]
+                )
                 fig.add_trace(go.Bar(
                     x=timeline_df["period"], y=timeline_df[term],
-                    name=term, marker_color=PLOTLY_COLORS[i % len(PLOTLY_COLORS)],
+                    name=term, marker_color=color,
                 ))
             fig.update_layout(
                 barmode="stack", height=450,
                 title="Term occurrences over time"
                       + (" (per 1,000 words)" if normalize else ""),
-                xaxis_title="Period", yaxis_title=y_label, legend_title="Term",
+                xaxis_title="Period", yaxis_title=y_label,
+                legend_title="Outlet" if color_by_outlet else "Term",
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -575,6 +602,7 @@ def step_dashboard():
                 metric=author_metric,
                 aggregation=aggregation,
                 include_unknown=include_unknown,
+                author_outlet_map=author_outlet_map,
             )
 
             if author_tl.empty or author_tl.get("total", pd.Series([0])).sum() == 0:
@@ -607,7 +635,9 @@ def step_dashboard():
                 fig2 = go.Figure()
                 color_idx = 0
                 for author in plot_cols:
-                    if author == UNKNOWN_AUTHOR:
+                    if color_by_outlet:
+                        color = OUTLET_COLORS.get(author, OUTLET_COLORS["unknown"])
+                    elif author == UNKNOWN_AUTHOR:
                         color = "#555555"
                     elif author == "(others)":
                         color = "#cccccc"
@@ -623,7 +653,7 @@ def step_dashboard():
                     title=f"Author {author_metric.lower()} over time"
                           + (f" (top {MAX_AUTHORS} + others)" if rest_cols else ""),
                     xaxis_title="Period", yaxis_title=author_metric.capitalize(),
-                    legend_title="Author",
+                    legend_title="Outlet" if color_by_outlet else "Author",
                 )
                 st.plotly_chart(fig2, use_container_width=True)
                 if rest_cols:
