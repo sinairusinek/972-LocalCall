@@ -547,8 +547,10 @@ def step_dashboard():
             normalize = st.checkbox(
                 "Normalize (per 1,000 words)",
                 value=False,
-                help="Divides hit counts by the total word count in each period. "
-                     "Useful for comparing across outlets or time periods with different volumes.",
+                help="Divides hit counts by the total number of words published in that time period "
+                     "(day/month/year, depending on the aggregation setting). "
+                     "Useful when some periods have more articles than others — normalization shows "
+                     "how frequent the terms are relative to how much was written, not just how often they appear in absolute numbers.",
                 disabled=(count_mode == CountMode.ROWS),
             )
 
