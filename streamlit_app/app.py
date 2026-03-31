@@ -539,7 +539,7 @@ def step_dashboard():
             count_mode = st.radio(
                 "Count mode",
                 [CountMode.HITS, CountMode.ROWS],
-                format_func=lambda m: "Hits" if m == CountMode.HITS else "Rows",
+                format_func=lambda m: "Hits" if m == CountMode.HITS else "Articles",
                 index=0,
                 horizontal=True,
             )
@@ -565,7 +565,7 @@ def step_dashboard():
             st.info("No term matches for the selected filters.")
         else:
             y_label = "Hits per 1,000 words" if normalize else (
-                "Hits" if count_mode == CountMode.HITS else "Rows"
+                "Hits" if count_mode == CountMode.HITS else "Articles"
             )
             term_cols = [c for c in timeline_df.columns if c not in ("period", "total")]
             fig = go.Figure()
