@@ -616,6 +616,13 @@ def step_dashboard():
                       + (" (per 1,000 words)" if normalize else ""),
                 xaxis_title="Period", yaxis_title=y_label,
                 legend_title=legend_title,
+                annotations=[dict(
+                    text="Drag to zoom · Double-click to reset",
+                    xref="paper", yref="paper", x=1, y=1.07,
+                    xanchor="right", yanchor="bottom",
+                    showarrow=False,
+                    font=dict(size=11, color="grey"),
+                )],
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -692,6 +699,13 @@ def step_dashboard():
                           + (f" (top {MAX_AUTHORS} + others)" if rest_cols else ""),
                     xaxis_title="Period", yaxis_title=author_metric.capitalize(),
                     legend_title=legend_title2,
+                    annotations=[dict(
+                        text="Drag to zoom · Double-click to reset",
+                        xref="paper", yref="paper", x=1, y=1.07,
+                        xanchor="right", yanchor="bottom",
+                        showarrow=False,
+                        font=dict(size=11, color="grey"),
+                    )],
                 )
                 st.plotly_chart(fig2, use_container_width=True)
                 if rest_cols:
