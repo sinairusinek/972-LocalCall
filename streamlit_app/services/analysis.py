@@ -530,7 +530,8 @@ def prepare_author_timeline_data(
             if not any(m.term_title in active_terms for m in res.matches):
                 continue
         key = _agg_key(res.date, aggregation)
-        val = 1 if metric == "POSTS" else res.word_count
+        n_authors = len(res.authors) if res.authors else 1
+        val = (1 if metric == "POSTS" else res.word_count) / n_authors
 
         if not res.authors:
             if include_unknown:
