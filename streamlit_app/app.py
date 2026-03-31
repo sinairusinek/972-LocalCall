@@ -484,22 +484,6 @@ def step_dashboard():
                 "Authors", all_authors, default=upstream_filtered, key="author_picker"
             )
 
-        count_mode = st.radio(
-            "Count mode",
-            [CountMode.HITS, CountMode.ROWS],
-            format_func=lambda m: "Hits" if m == CountMode.HITS else "Rows",
-            index=0,
-            horizontal=True,
-        )
-
-        normalize = st.checkbox(
-            "Normalize (per 1,000 words)",
-            value=False,
-            help="Divides hit counts by the total word count in each period. "
-                 "Useful for comparing across outlets or time periods with different volumes.",
-            disabled=(count_mode == CountMode.ROWS),
-        )
-
         color_by_outlet = st.radio(
             "Color by",
             ["Term / Author", "Outlet"],
@@ -550,6 +534,24 @@ def step_dashboard():
 
     # ---- Linguistic timeline ----
     with tab_linguistic:
+        c_cm, c_norm, _ = st.columns([1, 2, 3])
+        with c_cm:
+            count_mode = st.radio(
+                "Count mode",
+                [CountMode.HITS, CountMode.ROWS],
+                format_func=lambda m: "Hits" if m == CountMode.HITS else "Rows",
+                index=0,
+                horizontal=True,
+            )
+        with c_norm:
+            normalize = st.checkbox(
+                "Normalize (per 1,000 words)",
+                value=False,
+                help="Divides hit counts by the total word count in each period. "
+                     "Useful for comparing across outlets or time periods with different volumes.",
+                disabled=(count_mode == CountMode.ROWS),
+            )
+
         timeline_df = prepare_timeline_data(
             filtered_results,
             count_mode=count_mode,
