@@ -17,3 +17,4 @@ These first docs are written for **external readers** — journalists, researche
 - Need to look up a term, status, or definition? → [Reference](reference/data-and-terms.md)
 - Curious why this project exists? → [Methodology and rationale](explanation/methodology.md)
 - Who built this? → [About the project (CHOICE)](explanation/about.md)
+- Why no ML in the false-positive filter? → [False positives and the road not taken](explanation/false-positives-and-the-semantic-review.md)
