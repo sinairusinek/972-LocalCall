@@ -37,8 +37,18 @@ Two download buttons appear under the results table:
 
 Use the public export for charts, write-ups, or sharing with collaborators. Use the full export only if you need the raw article text for qualitative reading.
 
+## How do I spot-check for false positives in Hebrew matches?
+
+The Hebrew matchers are regex-based and tuned to reject known homonym traps — but not exhaustively. To audit a term yourself:
+
+1. Filter the **Results table** to a single term and to Local Call.
+2. Sort by hits descending.
+3. Skim the top fifteen or twenty titles. They should be visibly about the term's subject. If a clearly unrelated article shows up — a recipe, a sports report, a tech column for a violence term — open it and look at the matching word in context.
+
+The reasoning behind the current filters, and the embedding-based approach the project considered and rejected, is in [false positives and the road not taken](../explanation/false-positives-and-the-semantic-review.md).
+
 ## How do I check whether the Hebrew side missed an author I expected?
 
-The two outlets use different scripts for author names, and not every Hebrew-named writer has been matched to an English equivalent yet. To see the current state of name matching, switch to the **Author Matching** page in the sidebar. It shows accepted aliases and candidates awaiting review.
+The two outlets use different scripts for author names, and not every Hebrew-named writer has been matched to an English equivalent yet. Accepted aliases live in `streamlit_app/data/name_mapping.csv`, and pending candidates in `streamlit_app/data/name_candidates.csv`.
 
 A missing author is almost always a missing name-link, not a missing article.

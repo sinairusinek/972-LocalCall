@@ -14,7 +14,7 @@ A precise lookup for the corpus, the tracked terms, and the author categorisatio
 
 ## Tracked terms
 
-The dashboard searches for 19 political expressions in both English and Hebrew. Each term has multiple surface variants — *Nakba* matches both *Nakba* and *Nakbah*, the Hebrew matcher handles morphological prefixes — so the counts reflect the concept, not a single spelling.
+The dashboard searches for 19 political expressions in both English and Hebrew. Each term has multiple surface variants — *Nakba* matches both *Nakba* and *Nakbah*, the Hebrew matcher handles morphological prefixes — so the counts reflect the concept, not a single spelling. The Hebrew patterns are also tuned to reject specific homonym traps (the *Massacre* root **טבח** vs. *kitchen* **מטבח**, for example); the reasoning is documented in [false positives and the road not taken](../explanation/false-positives-and-the-semantic-review.md).
 
 | ID | Term |
 |---|---|
