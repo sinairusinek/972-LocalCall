@@ -5,7 +5,7 @@
     "variants_en": ["Nakba", "Naqba", "ongoing Nakba"],
     "variants_he": ["נכבה", "נכבה מתמשכת"],
     "regex_en": "\\b(ongoing\\s+)?na[kq]ba\\b",
-    "regex_he": "([ובהכשלמ]|^)נכבה(\\s+מתמשכת)?",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)נכבה(\\s+מתמשכת)?",
     "enabled": true
   },
   {
@@ -14,7 +14,7 @@
     "variants_en": ["Colonialism", "settler-colonialism", "colonial"],
     "variants_he": ["קולוניאליזם", "קולוניאלי", "קולוניאליזם התישבותי"],
     "regex_en": "\\b(settler[- ])?colonial(ism|ist)?s?\\b",
-    "regex_he": "([ובהכשלמ]|^)קולוניאלי(זם|סט|י)?(\\s+התישבותי)?",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)קולוניאלי(זם|סט|י)?(\\s+התישבותי)?",
     "enabled": true
   },
   {
@@ -23,7 +23,7 @@
     "variants_en": ["Apartheid"],
     "variants_he": ["אפרטהייד"],
     "regex_en": "\\bapartheid\\b",
-    "regex_he": "([ובהכשלמ]|^)אפרטהייד",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)אפרטהייד",
     "enabled": true
   },
   {
@@ -32,7 +32,7 @@
     "variants_en": ["Jewish supremacy"],
     "variants_he": ["עליונות יהודית"],
     "regex_en": "\\bJewish\\s+supremacy\\b",
-    "regex_he": "([ובהכשלמ]|^)עליונות\\s+יהודית",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)עליונות\\s+יהודית",
     "enabled": true
   },
   {
@@ -41,7 +41,7 @@
     "variants_en": ["Zionism", "Zionist", "Zionists"],
     "variants_he": ["ציונות", "ציוני", "ציוניים"],
     "regex_en": "\\bZionis(m|t)s?\\b",
-    "regex_he": "([ובהכשלמ]|^)ציונ(ות|י|ית|ים|יים)",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)ציונ(ות|י|ית|ים|יים)",
     "enabled": true
   },
   {
@@ -50,7 +50,7 @@
     "variants_en": ["Anti-Zionism", "anti-Zionist"],
     "variants_he": ["אנטי-ציונות", "אנטי-ציוני"],
     "regex_en": "\\banti[- ]?Zionis(m|t)s?\\b",
-    "regex_he": "([ובהכשלמ]|^)אנטי[- ]?ציונ(ות|י|ית|ים|יים)",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)אנטי[- ]?ציונ(ות|י|ית|ים|יים)",
     "enabled": true
   },
   {
@@ -59,11 +59,8 @@
     "variants_en": ["BDS", "boycott"],
     "variants_he": ["חרם", "BDS"],
     "regex_en": "\\b(BDS|boycott(s|ing)?)\\b",
-    "regex_he": "([ובהכשלמ]|^)(חרם|BDS)",
-    "enabled": true,
-    "semantic_references_he": ["חרם על ישראל", "חרם כלכלי", "תנועת החרם", "חרם תרבותי"],
-    "semantic_references_en": ["boycott of Israel", "BDS movement", "economic boycott", "cultural boycott"],
-    "semantic_threshold": 0.38
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)(חרם|BDS)",
+    "enabled": true
   },
   {
     "id": "TERM_008",
@@ -71,7 +68,7 @@
     "variants_en": ["Coresistance", "co-resistance", "joint resistance"],
     "variants_he": ["התנגדות משותפת"],
     "regex_en": "\\b(co[- ]?resistance|joint\\s+resistance)\\b",
-    "regex_he": "([ובהכשלמ]|^)התנגדות\\s+משותפת",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)התנגדות\\s+משותפת",
     "enabled": true
   },
   {
@@ -80,7 +77,7 @@
     "variants_en": ["Joint struggle"],
     "variants_he": ["מאבק משותף"],
     "regex_en": "\\bjoint\\s+struggle\\b",
-    "regex_he": "([ובהכשלמ]|^)מאבק\\s+משותף",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)מאבק\\s+משותף",
     "enabled": true
   },
   {
@@ -89,7 +86,7 @@
     "variants_en": ["Occupation", "the occupation"],
     "variants_he": ["כיבוש"],
     "regex_en": "\\b(the\\s+)?occupation\\b",
-    "regex_he": "([ובהכשלמ]|^)כיבוש",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)כיבוש",
     "enabled": true
   },
   {
@@ -98,11 +95,9 @@
     "variants_en": ["Peace"],
     "variants_he": ["שלום"],
     "regex_en": "\\bpeace\\b",
-    "regex_he": "([ובהכשלמ]|^)שלום",
+    "regex_he": "(?<![א-ת])[ובהכשלמ]שלום",
     "enabled": true,
-    "semantic_references_he": ["הסכם שלום", "שלום בין עמים", "תהליך שלום", "שלום ישראלי פלסטיני"],
-    "semantic_references_en": ["peace agreement", "peace process", "peaceful resolution", "Israeli Palestinian peace"],
-    "semantic_threshold": 0.35
+    "_regex_notes_he": "^ (start-of-string) removed from prefix alternation: 'שלום' as the first word of a sentence is typically a greeting, not the concept of peace. Only prefixed forms (ושלום, בשלום, השלום, לשלום, etc.) are counted."
   },
   {
     "id": "TERM_012",
@@ -110,7 +105,7 @@
     "variants_en": ["Coexistence", "co-existence"],
     "variants_he": ["דו קיום", "דו-קיום"],
     "regex_en": "\\bco[- ]?existence\\b",
-    "regex_he": "([ובהכשלמ]|^)דו[- ]?קיום",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)דו[- ]?קיום",
     "enabled": true
   },
   {
@@ -119,7 +114,7 @@
     "variants_en": ["Genocide"],
     "variants_he": ["רצח עם", "ג׳נוסייד"],
     "regex_en": "\\bgenocide\\b",
-    "regex_he": "([ובהכשלמ]|^)(רצח\\s+עם|ג['׳]נוסייד)",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)(רצח\\s+עם|ג['׳]נוסייד)",
     "enabled": true
   },
   {
@@ -128,11 +123,9 @@
     "variants_en": ["Massacre", "massacres"],
     "variants_he": ["טבח"],
     "regex_en": "\\bmassacre[sd]?\\b",
-    "regex_he": "([ובהכשלמ]|^)טבח",
+    "regex_he": "((?<![א-ת])(מה|[ובהכשל])|^)טבח",
     "enabled": true,
-    "semantic_references_he": ["טבח של אזרחים", "מעשה טבח", "רצח המוני", "טבח עם"],
-    "semantic_references_en": ["massacre of civilians", "mass killing", "slaughter atrocity", "killing of people"],
-    "semantic_threshold": 0.40
+    "_regex_notes_he": "מ excluded as a bare single prefix: 'מטבח' (kitchen) is a pervasive false positive. Double prefix 'מה' is allowed explicitly so 'מהטבח' (from the massacre) still matches. (?<![א-ת]) ensures prefix chars are not part of a longer word root (e.g. 'אבשלום' problem)."
   },
   {
     "id": "TERM_015",
@@ -140,7 +133,7 @@
     "variants_en": ["War crime", "war crimes", "war criminal", "war criminals"],
     "variants_he": ["פשע מלחמה", "פשעי מלחמה", "פושע מלחמה", "פושעי מלחמה"],
     "regex_en": "\\bwar\\s+crim(e|inal)s?\\b",
-    "regex_he": "([ובהכשלמ]|^)פשע(י)?\\s+מלחמה|([ובהכשלמ]|^)פושע(י)?\\s+מלחמה",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)פשע(י)?\\s+מלחמה|((?<![א-ת])[ובהכשלמ]|^)פושע(י)?\\s+מלחמה",
     "enabled": true
   },
   {
@@ -149,7 +142,7 @@
     "variants_en": ["Crime against humanity", "crimes against humanity"],
     "variants_he": ["פשע נגד האנושות", "פשעים נגד האנושות"],
     "regex_en": "\\bcrimes?\\s+against\\s+humanity\\b",
-    "regex_he": "([ובהכשלמ]|^)פשע(ים)?\\s+נגד\\s+האנושות",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)פשע(ים)?\\s+נגד\\s+האנושות",
     "enabled": true
   },
   {
@@ -158,7 +151,7 @@
     "variants_en": ["Fascism", "Fascist", "Fascists"],
     "variants_he": ["פשיזם", "פשיסטים", "פשיסט"],
     "regex_en": "\\bfascis(m|t)s?\\b",
-    "regex_he": "([ובהכשלמ]|^)פשיז(ם|ט|טים)",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)פשיז(ם|ט|טים)",
     "enabled": true
   },
   {
@@ -167,7 +160,7 @@
     "variants_en": ["Pogrom", "pogroms"],
     "variants_he": ["פוגרום"],
     "regex_en": "\\bpogroms?\\b",
-    "regex_he": "([ובהכשלמ]|^)פוגרום",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)פוגרום",
     "enabled": true
   },
   {
@@ -176,7 +169,7 @@
     "variants_en": ["Ethnic cleansing"],
     "variants_he": ["טיהור אתני"],
     "regex_en": "\\bethnic\\s+cleansing\\b",
-    "regex_he": "([ובהכשלמ]|^)טיהור\\s+אתני",
+    "regex_he": "((?<![א-ת])[ובהכשלמ]|^)טיהור\\s+אתני",
     "enabled": true
   }
 ]

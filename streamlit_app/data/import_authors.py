@@ -42,34 +42,59 @@ _WB_KEYWORDS = {"wb", "west bank", "ramallah", "nablus", "jenin", "hebron",
 _IL_KEYWORDS = {"israel", "tel aviv", "haifa", "nazareth", "jaffa", "acre",
                 "jerusalem", "negev", "galilee", "lod", "ramleh"}
 
+# Precisions vocabulary → status code.
+# Researchers' updated codes (2026 spreadsheet) plus backward-compat for the
+# older JI/JD codes.
+_PRECISION_TO_STATUS = {
+    "ij": 1,   # Israeli Jew
+    "ji": 1,   # legacy
+    "dj": 2,   # Diaspora Jew
+    "jd": 2,   # legacy
+    "ip": 3,   # Palestinian citizen of Israel
+    "wbp": 4,  # West Bank Palestinian
+    "ejp": 4,  # East Jerusalem Palestinian → grouped with WB
+    "gp": 5,   # Gaza Palestinian
+    "dp": 6,   # Diaspora Palestinian
+    "o": 7,    # Other
+    "x": 7,
+}
+
 
 def _normalise(s: str | None) -> str:
     return (s or "").strip().lower()
+
+
+def _first_precision_token(prec: str) -> str:
+    """Some cells contain multi-values like 'IJ ; DJ' or 'GP / DP' — take the first."""
+    for sep in (";", "/", ","):
+        if sep in prec:
+            prec = prec.split(sep)[0]
+    return prec.strip()
 
 
 def derive_status(ethnonational: Optional[str], precisions: Optional[str],
                   country: Optional[str], residence: Optional[str]) -> int:
     """Derive the 1–7 researcher status code from raw spreadsheet fields."""
     eth = _normalise(ethnonational)
-    prec = _normalise(precisions)
+    prec = _first_precision_token(_normalise(precisions))
     res = _normalise(residence)
     cit = _normalise(country)
 
+    # Strip parenthetical disambiguation like "DJ (IJ)" → "dj"
+    prec = re.sub(r"\s*\(.*\)\s*", "", prec).strip()
+
+    # Primary path: trust Precisions when present
+    if prec in _PRECISION_TO_STATUS:
+        return _PRECISION_TO_STATUS[prec]
+
     if eth == "j":
-        # Jewish
-        if prec == "ji":
-            return 1   # Israeli Jew
-        if prec == "jd":
-            return 2   # Diaspora Jew
-        # If precisions is missing, try to infer from country
         if "il" in cit or "israel" in cit:
             return 1
         if cit and cit not in ("", "nan"):
             return 2
-        return 7  # can't determine
+        return 7
 
     if eth == "a":
-        # Palestinian/Arab — use residence then citizenship to sub-categorise
         if any(k in res for k in _GAZA_KEYWORDS):
             return 5
         if any(k in res for k in _WB_KEYWORDS):
@@ -79,10 +104,10 @@ def derive_status(ethnonational: Optional[str], precisions: Optional[str],
         if "il" in cit or "israel" in cit:
             return 3
         if res and res not in ("", "nan"):
-            return 6   # residence known but outside IL/WB/Gaza → diaspora
-        return 7  # can't determine
+            return 6
+        return 7
 
-    # X, Iran, blank
+    # X, O, blank, "(libanais) ; X", etc.
     return 7
 
 

@@ -143,6 +143,7 @@ with st.sidebar:
         st.caption(f"Corpus: **{n:,}** articles · **{matched:,}** with matches")
 
 
+
 # ---------------------------------------------------------------------------
 # Step 1 — Upload  (research / local mode)
 # ---------------------------------------------------------------------------
@@ -842,6 +843,32 @@ def step_dashboard():
                            file_name="filtered_results.tsv",
                            mime="text/tab-separated-values")
 
+
+# ---------------------------------------------------------------------------
+# Top band — always-visible project info
+# ---------------------------------------------------------------------------
+
+ABOUT_LONG = """
+The **CHOICE project** (2022–2026) is a collective research project funded by the French National Research Agency (ANR) and coordinated by Karine Lamarche. It examines hegemonic and counter-hegemonic dynamics within Israeli society, with a particular focus on forms of political dissent, the actors who engage with them, and the reactions they encounter. It seeks to understand how opposition emerges, circulates, and is received in a context marked by deep power asymmetries.
+
+**Karine Lamarche** is a political sociologist and research fellow at the French National Centre for Scientific Research (CNRS). Her research focuses on power relations, political engagement, and contentious mobilizations, with a long-standing interest in Israeli society and forms of solidarity with Palestinians.
+
+**Nitzan Perelman Becker** holds a PhD in political sociology from Université Paris Cité and is a research engineer at the CNRS as part of the ANR project CHOICE. She is co-author of the documentary *Israel: Ministers of Chaos* (2024, Arte, 69 minutes) and co-founder of the research collective Yaani. Her book *Anatomy of the Israeli Right* (Amsterdam) will be published in September 2026.
+"""
+
+st.markdown(
+    """
+<div style="background:#f0f4f9;border-left:4px solid #2c5282;padding:0.6rem 1rem;
+            margin:-0.5rem 0 1rem 0;font-size:0.92rem;line-height:1.4;">
+<strong>CHOICE</strong> — researching political dissent in Israeli society ·
+ANR-funded, coordinated by <strong>Karine Lamarche</strong> with
+<strong>Nitzan Perelman Becker</strong> (CNRS).
+</div>
+""",
+    unsafe_allow_html=True,
+)
+with st.expander("About the project", expanded=False):
+    st.markdown(ABOUT_LONG)
 
 # ---------------------------------------------------------------------------
 # Router
