@@ -31,6 +31,7 @@ Raw counts are still available in the results table for readers who want them.
 ## What this project does *not* do
 
 - **It does not measure sentiment or stance.** A high count of "Genocide" does not tell you whether the writer accepts the framing or rejects it. It only tells you the word entered the discourse.
+- **It does not disambiguate the term's referent.** Every occurrence of *Genocide*, *Pogrom*, *Apartheid*, and the rest is counted equally, regardless of which event or context the writer has in mind — Gaza or Rwanda, Kishinev or Amsterdam, South Africa or the West Bank. Telling those apart requires reading the article.
 - **It does not weight by reach.** A widely-read column and a niche op-ed count the same. Reader engagement data is not in the corpus.
 - **It does not detect quotation.** A term inside a quoted source is counted the same as a term in the writer's own prose.
 - **It does not eliminate every false positive.** Hebrew morphology is rich: the same letter sequence can sit inside unrelated words. The matchers are tuned to reject the worst-known traps (see [false positives and the road not taken](false-positives-and-the-semantic-review.md) for the details and how the current Massacre regex avoids matching the Hebrew word for *kitchen*), but no purely lexical filter is exhaustive.

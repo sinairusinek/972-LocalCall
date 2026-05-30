@@ -492,8 +492,9 @@ div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
         return "Other / not identified"
 
     # ---- Tabs ----
-    tab_linguistic, tab_author, tab_table, tab_docs = st.tabs(
-        ["Linguistic timeline", "Author timeline", "Results table", "Documentation"]
+    tab_linguistic, tab_author, tab_table, tab_howto, tab_docs = st.tabs(
+        ["Linguistic timeline", "Author timeline", "Results table",
+         "How to use this app", "Methodology"]
     )
 
     # ---- Linguistic timeline ----
@@ -761,13 +762,18 @@ div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
                            file_name="filtered_results.tsv",
                            mime="text/tab-separated-values")
 
-    # ---- Documentation (Diátaxis) ----
+    # ---- How to use this app ----
+    with tab_howto:
+        st.markdown(_load_doc(_DOCS_HOWTO))
+
+    # ---- Methodology ----
     with tab_docs:
         _render_documentation()
 
 
 _DOCS_ROOT = Path(__file__).resolve().parent.parent / "docs"
 
+_DOCS_HOWTO = "how-to/using-the-app.md"
 _DOCS_MAIN = "explanation/methodology.md"
 _DOCS_EXTRAS = [
     ("Read more — why an embedding-based false-positive filter was rejected",
