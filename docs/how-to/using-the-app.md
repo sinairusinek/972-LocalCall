@@ -23,6 +23,18 @@ Four controls drive everything you see:
 
 A **Pick specific authors** expander lets you narrow to a handful of writers when you want a closer reading.
 
+## How the tabs work together
+
+The sidebar is **global**: every change there updates the Linguistic timeline, the Author timeline, and the Results table at the same time. There is one underlying filtered set of articles, and the three data tabs are three views onto it.
+
+Controls that live **inside** a tab are local to that tab. Count mode and Normalize affect only the Linguistic timeline; the POSTS / WORDS toggle only the Author timeline; the row-search box only the Results table. Switching tabs preserves the sidebar selection but resets these local controls' visual state where relevant (e.g. chart zoom).
+
+A few practical consequences:
+
+- **Chart zoom is visual only.** Dragging on a chart to narrow a date range does not narrow the data feeding the Results table or the export. To restrict by date for export, use the sidebar (and/or sort/filter in the downloaded TSV).
+- **The Results table is the ground truth.** Any pattern you notice in the charts can be inspected article by article in the table under the same filters. If a chart spike looks wrong, the table will show you the rows behind it.
+- **Filters compound silently.** A surprising chart is often a filter you forgot you set in another part of the sidebar. The corpus stats line in the sidebar shows the current effective sample size — watch it shrink as you add filters.
+
 ## The four tabs
 
 ### 1. Linguistic timeline
@@ -90,4 +102,3 @@ The reasoning behind the design choices: why these two outlets, why these 19 ter
 
 - **Rate beats raw count.** Whenever you are comparing two outlets, two periods, or two author groups with different sizes, turn on normalisation.
 - **A spike is the start of a question, not the answer.** Use the **Results table** to read the underlying articles before you commit to an interpretation.
-- **Filters compound.** A surprising chart is often a filter you forgot you set. The corpus stats line in the sidebar shows the current effective sample size.
