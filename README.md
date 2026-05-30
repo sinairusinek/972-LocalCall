@@ -18,8 +18,6 @@ Built with Python and Streamlit.
 streamlit_app/
 ├── app.py                        # Main Streamlit app
 ├── requirements.txt
-├── pages/
-│   └── 1_Author_Matching.py      # Name-matching review UI
 ├── services/
 │   └── analysis.py               # Core analysis logic
 ├── data/

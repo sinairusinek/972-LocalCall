@@ -34,7 +34,7 @@ Raw counts are still available in the results table for readers who want them.
 - **It does not weight by reach.** A widely-read column and a niche op-ed count the same. Reader engagement data is not in the corpus.
 - **It does not detect quotation.** A term inside a quoted source is counted the same as a term in the writer's own prose.
 - **It does not eliminate every false positive.** Hebrew morphology is rich: the same letter sequence can sit inside unrelated words. The matchers are tuned to reject the worst-known traps (see [false positives and the road not taken](false-positives-and-the-semantic-review.md) for the details and how the current Massacre regex avoids matching the Hebrew word for *kitchen*), but no purely lexical filter is exhaustive.
-- **It does not yet categorise Local Call's Hebrew-only authors.** Categorisation depends on a researcher-maintained spreadsheet that currently covers only +972's English-named writers. Until that gap is closed, status filters apply mainly to the +972 side of the corpus.
+- **Author categorisation is partial.** The status assignments come from a researcher-maintained spreadsheet, and not every writer in the corpus has been categorised. Status filters work on the categorised subset.
 
 These limitations are not bugs. They define what the dashboard can and cannot answer.
 

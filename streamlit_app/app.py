@@ -99,48 +99,17 @@ if precomputed_exists() and st.session_state.results is None:
         r.original_row["_cross_published"] = url in _cross_urls
 
 # ---------------------------------------------------------------------------
-# Sidebar — navigation
+# Sidebar — corpus stats (filters are added later inside the dashboard step)
 # ---------------------------------------------------------------------------
-
-STEPS = ["upload", "configure", "results", "dashboard"]
-STEP_LABELS = {
-    "upload": "1 · Upload",
-    "configure": "2 · Configure",
-    "results": "3 · Results",
-    "dashboard": "4 · Dashboard",
-}
 
 with st.sidebar:
     st.title("🔍 Corpus Analyzer")
-
-    if st.session_state.preloaded:
-        st.success("Preloaded corpus active")
-
-    st.markdown("---")
-
-    for s in STEPS:
-        # In preloaded mode, upload/configure steps are hidden entirely
-        if st.session_state.preloaded and s in ("upload", "configure"):
-            continue
-
-        active = st.session_state.step == s
-        done = STEPS.index(s) < STEPS.index(st.session_state.step)
-        icon = "✅" if done else ("▶" if active else "○")
-        label = f"{icon} {STEP_LABELS[s]}"
-        if done or active:
-            if st.button(label, key=f"nav_{s}", use_container_width=True):
-                st.session_state.step = s
-                st.rerun()
-        else:
-            st.markdown(f"<span style='color:grey'>{label}</span>",
-                        unsafe_allow_html=True)
-
-    st.markdown("---")
     results = st.session_state.results
     if results:
         n = len(results)
         matched = sum(1 for r in results if r.total_matches > 0)
         st.caption(f"Corpus: **{n:,}** articles · **{matched:,}** with matches")
+    st.markdown("---")
 
 
 
@@ -304,102 +273,12 @@ def step_configure():
 
         st.session_state.results = results
         st.session_state.analysis_options = options
-        st.session_state.step = "results"
-        st.rerun()
-
-
-# ---------------------------------------------------------------------------
-# Step 3 — Results  (live analysis mode only)
-# ---------------------------------------------------------------------------
-
-def step_results():
-    st.header("Results")
-
-    results = st.session_state.get("results")
-    if not results:
-        st.warning("No results yet. Run the analysis first.")
-        return
-
-    if st.session_state.preloaded:
-        st.info("Showing precomputed results. Use Upload → Configure to run a fresh analysis.")
-
-    options = st.session_state.get("analysis_options")
-
-    # ---- Stats ----
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Total rows", f"{len(results):,}")
-    matched_rows = sum(1 for r in results if r.total_matches > 0)
-    c3.metric("Rows with matches", f"{matched_rows:,}")
-    if options and st.session_state.corpus_df is not None:
-        stats = calculate_corpus_stats(st.session_state.corpus_df, options.selected_columns)
-        c2.metric("Total words", f"{stats.total_words:,}")
-
-    # ---- Term summary chart ----
-    term_counts: dict[str, int] = {}
-    for res in results:
-        for m in res.matches:
-            term_counts[m.term_title] = term_counts.get(m.term_title, 0) + m.count
-
-    if term_counts:
-        summary_df = pd.DataFrame(
-            sorted(term_counts.items(), key=lambda x: x[1], reverse=True),
-            columns=["Term", "Count"],
-        )
-        st.subheader("Term summary")
-        fig = px.bar(summary_df, x="Term", y="Count", color="Term",
-                     color_discrete_sequence=px.colors.qualitative.Plotly)
-        fig.update_layout(showlegend=False, height=350, xaxis_title="", yaxis_title="Hits")
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ---- Row table — metadata + match columns only (no article text) ----
-    st.subheader("Row-level results")
-    filter_text = st.text_input("Filter rows:", "")
-
-    result_df = results_to_dataframe(results, public=True)
-
-    if filter_text:
-        mask = result_df.apply(
-            lambda col: col.astype(str).str.contains(filter_text, case=False, na=False)
-        ).any(axis=1)
-        result_df = result_df[mask]
-
-    # Show a sensible subset of columns in a defined order
-    _TAIL_COLS = ["institutional author", "translators", "tags", "page_type", "filename"]
-    _base = [c for c in result_df.columns
-             if not c.startswith("_term_") and c not in ("_word_count", "_cross_published") and c not in _TAIL_COLS]
-    display_cols = _base + [c for c in _TAIL_COLS if c in result_df.columns]
-    st.dataframe(
-        result_df[display_cols],
-        use_container_width=True,
-        height=400,
-        column_config={"url": st.column_config.LinkColumn("url", display_text="🔗 open")}
-        if "url" in display_cols else None,
-    )
-
-    # ---- Downloads ----
-    dl1, dl2 = st.columns(2)
-    with dl1:
-        pub_bytes = result_df.to_csv(index=False, sep="\t").encode("utf-8")
-        st.download_button("⬇ Download public results (TSV)", data=pub_bytes,
-                           file_name="corpus_results_public.tsv",
-                           mime="text/tab-separated-values")
-    with dl2:
-        if not st.session_state.preloaded and st.session_state.corpus_df is not None:
-            full_df = results_to_dataframe(results, public=False)
-            full_bytes = full_df.to_csv(index=False, sep="\t").encode("utf-8")
-            st.download_button("⬇ Download full results (local only)", data=full_bytes,
-                               file_name="corpus_results_full.tsv",
-                               mime="text/tab-separated-values",
-                               help="Includes article text — do not share.")
-
-    st.markdown("---")
-    if st.button("Open Dashboard →", type="primary"):
         st.session_state.step = "dashboard"
         st.rerun()
 
 
 # ---------------------------------------------------------------------------
-# Step 4 — Dashboard
+# Dashboard
 # ---------------------------------------------------------------------------
 
 PLOTLY_COLORS = px.colors.qualitative.Plotly
@@ -425,7 +304,22 @@ STATUS_COLORS = {
 
 
 def step_dashboard():
-    st.header("Dashboard")
+    # Enlarge and highlight the dashboard tab labels
+    st.markdown(
+        """
+<style>
+div[data-testid="stTabs"] button[data-baseweb="tab"] {
+    font-size: 1.15rem;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+}
+div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+    color: #2c5282;
+}
+</style>
+""",
+        unsafe_allow_html=True,
+    )
 
     results = st.session_state.get("results")
     if not results:
@@ -598,12 +492,36 @@ def step_dashboard():
         return "Other / not identified"
 
     # ---- Tabs ----
-    tab_linguistic, tab_author, tab_table = st.tabs(
-        ["Linguistic timeline", "Author timeline", "Results table"]
+    tab_linguistic, tab_author, tab_table, tab_docs = st.tabs(
+        ["Linguistic timeline", "Author timeline", "Results table", "Documentation"]
     )
 
     # ---- Linguistic timeline ----
     with tab_linguistic:
+        # ---- Term summary chart (respects current filters) ----
+        active_terms_set = set(selected_terms) if selected_terms is not None else None
+        term_counts: dict[str, int] = {}
+        for res in filtered_results:
+            for m in res.matches:
+                if active_terms_set is not None and m.term_title not in active_terms_set:
+                    continue
+                term_counts[m.term_title] = term_counts.get(m.term_title, 0) + m.count
+
+        if term_counts:
+            summary_df = pd.DataFrame(
+                sorted(term_counts.items(), key=lambda x: x[1], reverse=True),
+                columns=["Term", "Count"],
+            )
+            st.subheader("Term summary")
+            summary_fig = px.bar(
+                summary_df, x="Term", y="Count", color="Term",
+                color_discrete_sequence=px.colors.qualitative.Plotly,
+            )
+            summary_fig.update_layout(
+                showlegend=False, height=350, xaxis_title="", yaxis_title="Hits",
+            )
+            st.plotly_chart(summary_fig, use_container_width=True)
+
         c_cm, c_norm, _ = st.columns([1, 2, 3])
         with c_cm:
             count_mode = st.radio(
@@ -843,6 +761,35 @@ def step_dashboard():
                            file_name="filtered_results.tsv",
                            mime="text/tab-separated-values")
 
+    # ---- Documentation (Diátaxis) ----
+    with tab_docs:
+        _render_documentation()
+
+
+_DOCS_ROOT = Path(__file__).resolve().parent.parent / "docs"
+
+_DOCS_MAIN = "explanation/methodology.md"
+_DOCS_EXTRAS = [
+    ("Read more — why an embedding-based false-positive filter was rejected",
+     "explanation/false-positives-and-the-semantic-review.md"),
+]
+
+
+@st.cache_data(show_spinner=False)
+def _load_doc(rel_path: str) -> str:
+    path = _DOCS_ROOT / rel_path
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as e:
+        return f"_Could not load `{rel_path}`: {e}_"
+
+
+def _render_documentation():
+    st.markdown(_load_doc(_DOCS_MAIN))
+    for extra_title, extra_rel in _DOCS_EXTRAS:
+        with st.expander(extra_title, expanded=False):
+            st.markdown(_load_doc(extra_rel))
+
 
 # ---------------------------------------------------------------------------
 # Top band — always-visible project info
@@ -881,11 +828,31 @@ if st.session_state.preloaded and step in ("upload", "configure"):
     st.session_state.step = "dashboard"
     step = "dashboard"
 
+# Legacy "results" state routes straight to the dashboard
+if step == "results":
+    st.session_state.step = "dashboard"
+    step = "dashboard"
+
 if step == "upload":
     step_upload()
 elif step == "configure":
     step_configure()
-elif step == "results":
-    step_results()
 elif step == "dashboard":
     step_dashboard()
+
+# ---------------------------------------------------------------------------
+# Footer — credits
+# ---------------------------------------------------------------------------
+
+st.markdown(
+    """
+<hr style="margin-top:2rem;margin-bottom:0.5rem;border:none;border-top:1px solid #e2e8f0;" />
+<div style="text-align:center;font-size:0.82rem;color:#666;padding:0.4rem 0 1rem 0;line-height:1.5;">
+Computational analysis and app design by
+<strong>Sinai Rusinek</strong>
+(<a href="https://www.dh-dev.com/" target="_blank" rel="noopener"><em>DH-Dev</em></a>)
+for the CHOICE project.
+</div>
+""",
+    unsafe_allow_html=True,
+)
